@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastery Calculator</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #c7d2fe;
+            --secondary: #f8fafc;
+            --accent: #10b981;
+            --accent-dark: #059669;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: var(--gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%);
+            opacity: 0.1;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .content {
+            padding: 2.5rem 2rem;
+        }
+
+        .user-limit-info {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .user-limit-info.limited {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+
+        .input-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-label::before {
+            content: '✦';
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: stretch;
+        }
+
+        .input-number {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: var(--secondary);
+        }
+
+        .input-number:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .select-notation {
+            width: 85px;
+            padding: 1rem 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select-notation:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem;
+            background: var(--secondary);
+            border-radius: 16px;
+            margin: 2rem 0;
+            border: 2px solid var(--border);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 32px;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #cbd5e1;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .toggle-slider {
+            background: var(--accent);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(28px);
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 1.25rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-calculate:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-calculate:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-calculate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-calculate:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-calculate:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .btn-calculate:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .result {
+            background: var(--secondary);
+            padding: 2rem;
+            border-radius: 20px;
+            margin-top: 2rem;
+            text-align: center;
+            display: none;
+            border: 2px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent);
+        }
+
+        .result.show {
+            display: block;
+            animation: slideUp 0.6s ease;
+        }
+
+        .result-title {
+            color: var(--text);
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-main {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            border: 2px solid var(--primary-light);
+            line-height: 1.4;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .result-item {
+            text-align: center;
+            padding: 1.25rem 0.75rem;
+            background: white;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-light);
+        }
+
+        .result-number {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .return-message {
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background: #ecfdf5;
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            color: var(--accent-dark);
+            font-size: 1rem;
+            font-weight: 600;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .return-message.show {
+            display: block;
+        }
+
+        .credits {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--border);
+            color: #ef4444;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .creator-name {
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content {
+                padding: 2rem 1.5rem;
+            }
+            
+            .header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 1.75rem;
+            }
+            
+            .result-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .result-main {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mastery Calculator</h1>
+            <p>Calculate the time needed to reach your next rank</p>
+        </div>
+
+        <div class="content">
+            <div class="user-limit-info" id="user-limit-info">
+                Loading user verification...
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Mastery per Click</label>
+                <div class="input-row">
+                    <input type="number" class="input-number" id="gain-value" value="10" min="1" placeholder="Value">
+                    <select class="select-notation" id="gain-notation">
+                        <option value="1">Unit</option>
+                        <option value="1000">K</option>
+                        <option value="1000000">M</option>
+                        <option value="1000000000">B</option>
+                        <option value="1000000000000">T</option>
+                        <option value="1e15">Qa</option>
+                        <option value="1e18">Qi</option>
+                        <option value="1e21">Sx</option>
+                        <option value="1e24">Sp</option>
+                        <option value="1e27">Oc</option>
+                        <option value="1e30">No</option>
+                        <option value="1e33">Dc</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Current Mastery</label>
+                <div class="input-row">
+                    <input type="number" class="input-number" id="current-value" value="0" min="0" placeholder="Value">
+                    <select class="select-notation" id="current-notation">
+                        <option value="1">Unit</option>
+                        <option value="1000">K</option>
+                        <option value="1000000">M</option>
+                        <option value="1000000000">B</option>
+                        <option value="1000000000000">T</option>
+                        <option value="1e15">Qa</option>
+                        <option value="1e18">Qi</option>
+                        <option value="1e21">Sx</option>
+                        <option value="1e24">Sp</option>
+                        <option value="1e27">Oc</option>
+                        <option value="1e30">No</option>
+                        <option value="1e33">Dc</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Rank Up Target</label>
+                <div class="input-row">
+                    <input type="number" class="input-number" id="desired-value" value="1000" min="1" placeholder="Value">
+                    <select class="select-notation" id="desired-notation">
+                        <option value="1">Unit</option>
+                        <option value="1000">K</option>
+                        <option value="1000000" selected>M</option>
+                        <option value="1000000000">B</option>
+                        <option value="1000000000000">T</option>
+                        <option value="1e15">Qa</option>
+                        <option value="1e18">Qi</option>
+                        <option value="1e21">Sx</option>
+                        <option value="1e24">Sp</option>
+                        <option value="1e27">Oc</option>
+                        <option value="1e30">No</option>
+                        <option value="1e33">Dc</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="toggle-group">
+                <span class="toggle-label">Auto Clicker</span>
+                <label class="toggle">
+                    <input type="checkbox" id="auto-clicker-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <button class="btn-calculate" id="calculate-btn" disabled>Calculate Time</button>
+
+            <div class="result" id="result">
+                <div class="result-title">Estimated Time</div>
+                <div class="result-main" id="result-main"></div>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="result-number" id="days-result">0</div>
+                        <div class="result-label">Day</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number" id="hours-result">0</div>
+                        <div class="result-label">Hour</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number" id="minutes-result">0</div>
+                        <div class="result-label">Minutes</div>
+                    </div>
+                </div>
+                <div class="return-message" id="return-message"></div>
+            </div>
+
+            <div class="credits">
+                Created by <span class="creator-name">Physics</span><br>
+                Discord: xiupobre
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userLimitInfo = document.getElementById('user-limit-info');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const gainValueInput = document.getElementById('gain-value');
+            const gainNotationSelect = document.getElementById('gain-notation');
+            const currentValueInput = document.getElementById('current-value');
+            const currentNotationSelect = document.getElementById('current-notation');
+            const desiredValueInput = document.getElementById('desired-value');
+            const desiredNotationSelect = document.getElementById('desired-notation');
+            const autoClickerToggle = document.getElementById('auto-clicker-toggle');
+            const resultDiv = document.getElementById('result');
+            const resultMain = document.getElementById('result-main');
+            const daysResult = document.getElementById('days-result');
+            const hoursResult = document.getElementById('hours-result');
+            const minutesResult = document.getElementById('minutes-result');
+            const returnMessage = document.getElementById('return-message');
+
+            // Sistema de limite de usuários
+            const MAX_USERS = 10;
+            const STORAGE_KEY = 'mastery_calc_users';
+
+            // Gerar ID único para o usuário
+            function generateUserId() {
+                return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            }
+
+            // Verificar se usuário já existe
+            function getUserData() {
+                const usersData = localStorage.getItem(STORAGE_KEY);
+                return usersData ? JSON.parse(usersData) : [];
+            }
+
+            // Salvar dados do usuário
+            function saveUserData(users) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+            }
+
+            // Verificar e registrar usuário
+            function initializeUser() {
+                let users = getUserData();
+                let userId = localStorage.getItem('mastery_calc_current_user');
+                
+                // Se usuário já tem ID registrado
+                if (userId) {
+                    const existingUser = users.find(u => u.id === userId);
+                    if (existingUser) {
+                        userLimitInfo.textContent = `✅ Welcome back! User ${users.indexOf(existingUser) + 1}/10`;
+                        calculateBtn.disabled = false;
+                        return true;
+                    }
+                }
+
+                // Se é um novo usuário
+                if (users.length >= MAX_USERS) {
+                    userLimitInfo.textContent = '❌ User limit reached (10/10). This calculator is currently full.';
+                    userLimitInfo.classList.add('limited');
+                    calculateBtn.disabled = true;
+                    return false;
+                }
+
+                // Registrar novo usuário
+                userId = generateUserId();
+                const newUser = {
+                    id: userId,
+                    timestamp: Date.now(),
+                    accessCount: 1
+                };
+                
+                users.push(newUser);
+                saveUserData(users);
+                localStorage.setItem('mastery_calc_current_user', userId);
+                
+                userLimitInfo.textContent = `✅ Access granted! You are user ${users.length}/10`;
+                calculateBtn.disabled = false;
+                return true;
+            }
+
+            // Função para obter label da notação
+            function getNotationLabel(value) {
+                const notations = {
+                    '1': '',
+                    '1000': 'K',
+                    '1000000': 'M',
+                    '1000000000': 'B',
+                    '1000000000000': 'T',
+                    '1e15': 'Qa',
+                    '1e18': 'Qi',
+                    '1e21': 'Sx',
+                    '1e24': 'Sp',
+                    '1e27': 'Oc',
+                    '1e30': 'No',
+                    '1e33': 'Dc'
+                };
+                return notations[value.toString()] || '';
+            }
+
+            // Função para obter singular/plural correto
+            function getTimeUnit(value, unit) {
+                if (value === 1) {
+                    return unit.slice(0, -1);
+                }
+                return unit;
+            }
+
+            // Inicializar verificação de usuário
+            const userAllowed = initializeUser();
+
+            // Calcular tempo
+            calculateBtn.addEventListener('click', function() {
+                if (!userAllowed) return;
+
+                // Obter valores e converter para números
+                const gainValue = parseFloat(gainValueInput.value) * parseFloat(gainNotationSelect.value);
+                const currentValue = parseFloat(currentValueInput.value) * parseFloat(currentNotationSelect.value);
+                const desiredValue = parseFloat(desiredValueInput.value) * parseFloat(desiredNotationSelect.value);
+                
+                // Obter valores exatos como inseridos pelo usuário
+                const exactDesiredValue = desiredValueInput.value;
+                const desiredNotation = getNotationLabel(desiredNotationSelect.value);
+                
+                // Definir velocidade baseada no auto clicker
+                const hasAutoClicker = autoClickerToggle.checked;
+                const clicksPerSecond = hasAutoClicker ? 5 : 1;
+
+                // Validação
+                if (isNaN(gainValue) || gainValue <= 0) {
+                    alert('Please enter a valid value for "Points per Click"');
+                    return;
+                }
+                
+                if (isNaN(currentValue) || currentValue < 0) {
+                    alert('Please enter a valid value for "Current Mastery"');
+                    return;
+                }
+                
+                if (isNaN(desiredValue) || desiredValue <= 0) {
+                    alert('Please enter a valid value for "Rank Up Target"');
+                    return;
+                }
+                
+                if (desiredValue <= currentValue) {
+                    alert('The rank up target must be greater than current mastery');
+                    return;
+                }
+
+                // Cálculo
+                const masteryNeeded = desiredValue - currentValue;
+                const clicksNeeded = masteryNeeded / gainValue;
+                const totalSeconds = clicksNeeded / clicksPerSecond;
+
+                // Converter para dias, horas, minutos
+                const totalMinutes = Math.floor(totalSeconds / 60);
+                const totalHours = Math.floor(totalMinutes / 60);
+                const totalDays = Math.floor(totalHours / 24);
+
+                const remainingHours = totalHours % 24;
+                const remainingMinutes = totalMinutes % 60;
+
+                // Exibir resultado principal com informações exatas do rank e singular/plural correto
+                if (totalDays >= 365) {
+                    const years = (totalDays / 365).toFixed(1);
+                    const yearUnit = years === '1.0' ? 'year' : 'years';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${years} ${yearUnit}`;
+                } else if (totalDays >= 30) {
+                    const months = (totalDays / 30).toFixed(1);
+                    const monthUnit = months === '1.0' ? 'month' : 'months';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${months} ${monthUnit}`;
+                } else if (totalDays >= 1) {
+                    const dayUnit = totalDays === 1 ? 'day' : 'days';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${totalDays} ${dayUnit}`;
+                } else if (totalHours >= 1) {
+                    const hourUnit = totalHours === 1 ? 'hour' : 'hours';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${totalHours} ${hourUnit}`;
+                } else if (totalMinutes >= 1) {
+                    const minuteUnit = totalMinutes === 1 ? 'minute' : 'minutes';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${totalMinutes} ${minuteUnit}`;
+                } else {
+                    const secondUnit = Math.floor(totalSeconds) === 1 ? 'second' : 'seconds';
+                    resultMain.textContent = `You'll get rank ${exactDesiredValue}${desiredNotation} in ${Math.floor(totalSeconds)} ${secondUnit}`;
+                }
+
+                // Atualizar valores detalhados
+                daysResult.textContent = totalDays;
+                hoursResult.textContent = remainingHours;
+                minutesResult.textContent = remainingMinutes;
+
+                // Calcular horário de retorno
+                if (totalDays <= 7) {
+                    const now = new Date();
+                    const returnTime = new Date(now.getTime() + (totalSeconds * 1000));
+                    
+                    const options = { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        hour12: true
+                    };
+                    
+                    const returnTimeString = returnTime.toLocaleTimeString('en-US', options);
+                    
+                    if (totalDays === 0) {
+                        returnMessage.textContent = `Come back today at ${returnTimeString}!`;
+                    } else if (totalDays === 1) {
+                        returnMessage.textContent = `Come back tomorrow at ${returnTimeString}!`;
+                    } else {
+                        returnMessage.textContent = `Come back in ${totalDays} days at ${returnTimeString}!`;
+                    }
+                    
+                    returnMessage.classList.add('show');
+                } else {
+                    returnMessage.classList.remove('show');
+                }
+
+                resultDiv.classList.add('show');
+            });
+        });
+    </script>
+</body>
+</html>
